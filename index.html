@@ -75,6 +75,7 @@
 
         btnStart.on('click', (e) => {
             gameround = 0
+            won = false
             btnDoor.parent().css("background-color", "unset")
             $(e.target).prop('disabled', true)
             $(e.target).hide()
