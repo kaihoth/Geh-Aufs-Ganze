@@ -1,5 +1,5 @@
 <!doctype html>
-<html>
+<html lang="de">
 <head>
     <meta charset="utf-8">
     <title>Geh aufs Ganze!</title>
@@ -68,22 +68,23 @@
         let gameStarted = false;
         let gameround = 0;
         let won = false;
-        let btnStart = $('#start-new-game');
+        const btnStart = $('#start-new-game');
         const gametitle = $('#game-title');
+        const btnDoor = $('.door-btn');
 
 
         btnStart.on('click', (e) => {
             gameround = 0
-            $('.door-btn').parent().css("background-color", "unset")
+            btnDoor.parent().css("background-color", "unset")
             $(e.target).prop('disabled', true)
             $(e.target).hide()
-            $('.door-btn').prop('disabled', false)
+            btnDoor.prop('disabled', false)
             connectToBackend();
             gametitle.text("Wähle deine Tür")
         })
 
 
-        $(".door-btn").on('click', (e) => {
+        btnDoor.on('click', (e) => {
             let door = $(e.target).data('door');
             selectDoor(door);
         })
@@ -117,10 +118,10 @@
                 await fetchDoor(door)
                     .then((res) => {
                         console.log(res)
-                        $('.door-btn').prop('disabled', true)
+                        btnDoor.prop('disabled', true)
                         if(res.open_doors[door].type === "win"){
                             won = true
-                            $('.door-btn').parent().css("background-color", "unset")
+                            btnDoor.parent().css("background-color", "unset")
                             $('.door-btn[data-door=' + door + ']').parent().css("background-color", "green")
                         }else {
                             for (let k in res.open_doors) {
@@ -138,8 +139,7 @@
 
                 if (won) gametitle.html("Gratulation! Du hast gewonnen!!!<br> Du kannst nun ein neues Spiel starten :)")
                 else gametitle.html("Hoppla! Das hat diesmal nicht geklappt!<br> Der Gewinn versteckt sich hinter Tür " + winner + "<br> Versuchs nochmal")
-                $('#start-new-game').prop('disabled', false)
-                $('#start-new-game').show()
+                btnStart.prop('disabled', false).show()
 
 
             }
