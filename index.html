@@ -117,9 +117,7 @@
                 await fetchDoor(door)
                     .then((res) => {
                         console.log(res)
-                        console.log(door)
                         $('.door-btn').prop('disabled', true)
-                        console.log(res.open_doors[door].type)
                         if(res.open_doors[door].type === "win"){
                             won = true
                             $('.door-btn').parent().css("background-color", "unset")
