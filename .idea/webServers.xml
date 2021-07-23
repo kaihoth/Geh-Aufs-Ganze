@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="WebServers">
+    <option name="servers">
+      <webServer id="d02467f8-ffe8-4f1e-9d90-e0a34df194e5" name="local" url="http://127.0.0.1">
+        <fileTransfer mountedRoot="C:\xampp\htdocs\digitalkraft" accessType="MOUNT" port="0" />
+      </webServer>
+    </option>
+  </component>
+</project>

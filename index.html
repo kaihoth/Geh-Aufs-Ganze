@@ -1,0 +1,188 @@
+<!doctype html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Geh aufs Ganze!</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css"
+          integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
+    <link rel="stylesheet" href="css/normalize.css">
+    <link rel="stylesheet" href="css/main.css">
+</head>
+
+<body>
+
+<div class="container-xxl ">
+    <div class="row align-items-center vh-100">
+        <div class="col-12 d-flex justify-content-center">
+            <div class="div-center">
+                <h1 id="game-title">Start a new Game?</h1><br/>
+                <button class="btn btn-warning" id="start-new-game">Start</button>
+            </div>
+
+        </div>
+        <div class="col-md-4 col-12 d-flex justify-content-center">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title text-center">1</h5>
+
+
+                    <button class="btn btn-primary door-btn" data-door="1" disabled>Tür 1 Öffnen</button>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 col-12 d-flex justify-content-center">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title text-center">2</h5>
+                    <button class="btn btn-primary door-btn" data-door="2" disabled>Tür 2 Öffnen</button>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 col-12 d-flex justify-content-center">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title text-center">3</h5>
+                    <button class="btn btn-primary door-btn" data-door="3" disabled>Tür 3 Öffnen</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"
+        integrity="sha512-894YE6QWD5I59HgZOGReFYm4dnWc1Qt5NtvYSaNcOP+u1T9qYdvdihz0PPSiiqn/+/3e7Jo4EaG7TubfWGUrMQ=="
+        crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.min.js"
+        integrity="sha384-cVKIPhGWiC2Al4u+LWgxfKTRIcfu0JTxR+EQDz/bgldoEyl4H0zUF0QKbrJ0EcQF"
+        crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"
+        integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM"
+        crossorigin="anonymous"></script>
+<script>
+    $(document).ready(() => {
+        const newGameAPI = "https://hr-test.digitalkraft.de/rest-api/get/new-game";
+        const gameChoiceURL = "https://hr-test.digitalkraft.de/rest-api/post/select-door?door_number=";
+
+        let gameStarted = false;
+        let gameround = 0;
+        let won = false;
+        let btnStart = $('#start-new-game');
+        const gametitle = $('#game-title');
+
+
+        btnStart.on('click', (e) => {
+            gameround = 0
+            $('.door-btn').parent().css("background-color", "unset")
+            $(e.target).prop('disabled', true)
+            $(e.target).hide()
+            $('.door-btn').prop('disabled', false)
+            connectToBackend();
+            gametitle.text("Wähle deine Tür")
+        })
+
+
+        $(".door-btn").on('click', (e) => {
+            let door = $(e.target).data('door');
+            selectDoor(door);
+        })
+
+        const fetchDoor = async (door) => {
+            let res = await fetch(gameChoiceURL + door, {
+                method: 'POST',
+            }).then(response => response.json()).then((data) => {return data})
+
+            return await res
+
+        }
+
+        const selectDoor = async (door) => {
+            let doorRes = null;
+            if (gameStarted && gameround === 1) {
+
+                await fetchDoor(door)
+                    .then((res) => {
+                        console.log(res)
+                        doorRes = res.open_doors[0].door_number
+                        let selectedDoor = $('.door-btn[data-door=' + doorRes + ']')
+                        selectedDoor.prop('disabled', true)
+                        selectedDoor.parent().css("background-color", "orange")
+                        gametitle.html("Tür Nummer " + doorRes + " fällt weg! <br /> Möchtest du deine Entscheidung ändern? Wähle erneut eine Tür.")
+                        gameround++;
+                    })
+
+            } else if (gameStarted && gameround === 2) {
+                let winner = null
+                await fetchDoor(door)
+                    .then((res) => {
+                        console.log(res)
+                        console.log(door)
+                        $('.door-btn').prop('disabled', true)
+                        console.log(res.open_doors[door].type)
+                        if(res.open_doors[door].type === "win"){
+                            won = true
+                            $('.door-btn').parent().css("background-color", "unset")
+                            $('.door-btn[data-door=' + door + ']').parent().css("background-color", "green")
+                        }else {
+                            for (let k in res.open_doors) {
+                                if (res.open_doors[k].door_number === door) {
+                                    $('.door-btn[data-door=' + k + ']').parent().css("background-color", "red")
+                                } else if(res.open_doors[k].type === "win") {
+                                    $('.door-btn[data-door=' + k + ']').parent().css("background-color", "green")
+                                    winner = k
+                                } else {
+                                    $('.door-btn[data-door=' + k + ']').parent().css("background-color", "unset")
+                                }
+                            }
+                        }
+                    })
+
+                if (won) gametitle.html("Gratulation! Du hast gewonnen!!!<br> Du kannst nun ein neues Spiel starten :)")
+                else gametitle.html("Hoppla! Das hat diesmal nicht geklappt!<br> Der Gewinn versteckt sich hinter Tür " + winner + "<br> Versuchs nochmal")
+                $('#start-new-game').prop('disabled', false)
+                $('#start-new-game').show()
+
+
+            }
+
+            /*$.ajax({
+                    url: gameChoiceURL + door,
+                    type: 'POST',
+                    crossDomain: true,
+                    success: (res) => {
+                        console.log(res)
+                        gameData = JSON.parse(res)
+                        console.log(gameData)
+                    }
+                })*/
+        }
+
+        const connectToBackend = () => {
+            fetch(newGameAPI, {
+                method: 'GET',
+            })
+                .then(response => response.json())
+                .then(data => console.log(data))
+            gameStarted = true
+            gameround++;
+            /*
+            $.ajax({
+                url: newGameAPI,
+                type: 'GET',
+                crossDomain: true,
+                success: (res) => {
+                    gameStarted = true
+                    sessionId = JSON.parse(res)["game_id"]
+                    gameround++;
+                    console.log(sessionId)
+
+                }
+            })*/
+        }
+
+    });
+</script>
+</body>
+
+</html>
